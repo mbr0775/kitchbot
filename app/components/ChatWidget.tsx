@@ -50,7 +50,7 @@ export default function ChatWidget({ isDarkMode, onClose }: ChatWidgetProps) {
     {
       role: "bot",
       type: "text",
-      text: "Hi 👋 I’m KitchBot. I can help you with menu, opening hours, bookings, and restaurant information.",
+      text: "Hi 👋 I’m KitchBot. I can help you with menu, opening hours, bookings, food suggestions, and restaurant information.",
     },
   ]);
 
@@ -87,6 +87,10 @@ export default function ChatWidget({ isDarkMode, onClose }: ChatWidgetProps) {
   };
 
   useEffect(() => {
+    getOrCreateSessionId();
+  }, []);
+
+  useEffect(() => {
     const loadRestaurantInfo = async () => {
       try {
         const response = await fetch("/api/restaurant");
@@ -107,48 +111,71 @@ export default function ChatWidget({ isDarkMode, onClose }: ChatWidgetProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isBotTyping]);
 
-  const shouldShowMenu = (text: string) => {
-    const message = text.toLowerCase();
+  const normalizeMessage = (text: string) => {
+    return text.toLowerCase().trim().replace(/\s+/g, " ");
+  };
 
-    return (
-      message.includes("show menu") ||
-      message.includes("menu") ||
-      message.includes("food") ||
-      message.includes("items") ||
-      message.includes("dish") ||
-      message.includes("dishes")
-    );
+  const shouldShowMenu = (text: string) => {
+    const message = normalizeMessage(text);
+
+    const directMenuCommands = [
+      "menu",
+      "show menu",
+      "show me menu",
+      "show the menu",
+      "view menu",
+      "open menu",
+      "see menu",
+      "food menu",
+      "show food menu",
+      "can i see the menu",
+      "can you show menu",
+      "can you show me the menu",
+      "what is on the menu",
+      "what's on the menu",
+    ];
+
+    return directMenuCommands.some((command) => message === command);
   };
 
   const shouldShowBookingForm = (text: string) => {
-    const message = text.toLowerCase();
+    const message = normalizeMessage(text);
 
     return (
-      message.includes("book") ||
-      message.includes("table") ||
-      message.includes("reservation") ||
-      message.includes("reserve")
+      message === "book" ||
+      message === "book table" ||
+      message === "book a table" ||
+      message === "reserve table" ||
+      message === "reserve a table" ||
+      message === "reservation" ||
+      message === "make reservation" ||
+      message === "table booking" ||
+      message.includes("i want to book") ||
+      message.includes("i need a table") ||
+      message.includes("book a table") ||
+      message.includes("reserve a table") ||
+      message.includes("make a reservation")
     );
   };
 
   const shouldShowLeadForm = (text: string) => {
-    const message = text.toLowerCase();
+    const message = normalizeMessage(text);
 
     return (
       message === "contact" ||
+      message === "contact me" ||
+      message === "call me" ||
+      message === "support" ||
+      message === "whatsapp" ||
       message.includes("contact me") ||
       message.includes("call me") ||
-      message.includes("team contact") ||
       message.includes("talk to staff") ||
       message.includes("talk to team") ||
-      message.includes("support") ||
-      message.includes("catering") ||
-      message.includes("party order") ||
-      message.includes("event order") ||
-      message.includes("bulk order") ||
-      message.includes("whatsapp") ||
-      message.includes("inquiry") ||
-      message.includes("enquiry")
+      message.includes("talk to someone") ||
+      message.includes("catering inquiry") ||
+      message.includes("party order inquiry") ||
+      message.includes("bulk order inquiry") ||
+      message.includes("event order inquiry")
     );
   };
 
@@ -410,7 +437,7 @@ export default function ChatWidget({ isDarkMode, onClose }: ChatWidgetProps) {
                     : "bg-white text-slate-700 shadow-sm"
                 }`}
               >
-                KitchBot is typing...
+                KitchBot is thinking...
               </div>
             </div>
           )}
